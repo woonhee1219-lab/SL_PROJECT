@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SL_PROJECT</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root, html[data-theme="dark"] {
+    --bg: #0e1014;
+    --bg-soft: #13161c;
+    --card: #171b22;
+    --card-2: #1d222b;
+    --border: #262c37;
+    --text: #e9ecf2;
+    --muted: #8c95a6;
+    --accent: #5b8cff;
+    --accent-soft: rgba(91,140,255,0.14);
+    --accent-2: #8f7bff;
+    --danger: #ff6b81;
+    --ok: #3fd0a4;
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    --grad: linear-gradient(135deg, #5b8cff, #8f7bff);
+  }
+  html[data-theme="light"] {
+    --bg: #f3f5f9;
+    --bg-soft: #eaedf3;
+    --card: #ffffff;
+    --card-2: #f6f8fb;
+    --border: #e2e6ee;
+    --text: #1b2230;
+    --muted: #6a7387;
+    --accent: #3b6ef0;
+    --accent-soft: rgba(59,110,240,0.1);
+    --accent-2: #7a5cf0;
+    --danger: #e0506b;
+    --ok: #14a87e;
+    --shadow: 0 10px 30px rgba(20,30,60,0.08);
+    --grad: linear-gradient(135deg, #3b6ef0, #7a5cf0);
+  }
+
+  html, body {
+    min-height: 100%;
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background .3s, color .3s;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(900px 420px at 12% -8%, var(--accent-soft), transparent 60%),
+      radial-gradient(700px 380px at 95% 8%, rgba(143,123,255,0.08), transparent 60%);
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1140px; margin: 0 auto; padding: 30px 20px 70px; }
+
+  /* ---------- header ---------- */
+  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+  .brand h1 {
+    font-size: 1.65rem; font-weight: 800; letter-spacing: 1.5px;
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .brand small { display: block; font-size: .82rem; font-weight: 400; color: var(--muted); margin-top: 3px; letter-spacing: 0; }
+  .ctrl { display: flex; gap: 8px; align-items: center; }
+
+  .chip-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px; border: 1px solid var(--border); border-radius: 999px;
+    background: var(--card); color: var(--text); font-size: .85rem; cursor: pointer;
+    box-shadow: var(--shadow); transition: transform .18s, border-color .18s;
+  }
+  .chip-btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .chip-btn .eq { display: inline-flex; gap: 2.5px; align-items: flex-end; height: 12px; }
+  .chip-btn .eq span { width: 2.5px; background: var(--accent); border-radius: 2px; height: 3px; }
+  .chip-btn.playing .eq span { animation: eq 1s ease-in-out infinite; }
+  .chip-btn.playing .eq span:nth-child(2) { animation-delay: .2s; }
+  .chip-btn.playing .eq span:nth-child(3) { animation-delay: .4s; }
+  @keyframes eq { 0%,100% { height: 3px; } 50% { height: 12px; } }
+
+  /* ---------- tabs ---------- */
+  .tabs {
+    display: flex; gap: 6px; margin-bottom: 22px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 6px; width: fit-content; max-width: 100%;
+    box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .tab-btn {
+    border: none; background: transparent; color: var(--muted);
+    font-size: .9rem; font-weight: 600; font-family: inherit;
+    padding: 10px 20px; border-radius: 11px; cursor: pointer; white-space: nowrap;
+    transition: color .2s, background .2s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { background: var(--grad); color: #fff; box-shadow: 0 4px 14px rgba(91,140,255,0.35); }
+  .tab-page { display: none; }
+  .tab-page.active { display: block; animation: fadeUp .25s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- cards / layout ---------- */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; box-shadow: var(--shadow); padding: 22px;
+  }
+  .layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+
+  .section-label { font-size: .8rem; font-weight: 700; color: var(--muted); letter-spacing: .4px; margin: 20px 0 10px; text-transform: uppercase; }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ---------- calendar ---------- */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-head h2 { font-size: 1.1rem; font-weight: 700; }
+  .nav-btn {
+    width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card-2); color: var(--text); font-size: 1rem; cursor: pointer;
+    transition: border-color .2s, transform .15s;
+  }
+  .nav-btn:hover { border-color: var(--accent); transform: scale(1.06); }
+
+  .weekdays, .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .grid > :not(.day) { display: none !important; }
+  .weekdays div { text-align: center; font-size: .74rem; font-weight: 600; color: var(--muted); padding: 6px 0; }
+  .weekdays div:first-child { color: var(--danger); }
+  .weekdays div:last-child { color: var(--accent); }
+
+  .day {
+    height: 72px; min-width: 0; overflow: hidden;
+    border-radius: 12px; padding: 7px 8px;
+    background: var(--card-2); border: 1px solid transparent;
+    cursor: pointer; position: relative; font-size: .84rem;
+    transition: border-color .2s, transform .15s, background .2s;
+  }
+  .day:hover { border-color: var(--border); transform: translateY(-2px); }
+  .day.blank { background: transparent; cursor: default; }
+  .day.blank:hover { transform: none; border-color: transparent; }
+  .day.today { border-color: var(--accent); }
+  .day.today .num { color: var(--accent); font-weight: 800; }
+  .day.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .day .num { color: var(--text); font-weight: 500; }
+  .day.sun .num { color: var(--danger); }
+  .day.sat .num { color: var(--accent); }
+  .marks { display: flex; gap: 4px; margin-top: 7px; flex-wrap: wrap; align-items: center; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .clip { font-size: .66rem; }
+
+  /* ---------- panel / events ---------- */
+  .panel h3 { font-size: 1.02rem; font-weight: 700; margin-bottom: 4px; }
+  .panel .sub { font-size: .8rem; color: var(--muted); margin-bottom: 14px; }
+
+  .event-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 13px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .event-item .time { font-size: .76rem; color: var(--accent); font-weight: 700; white-space: nowrap; padding-top: 2px; min-width: 46px; }
+  .event-item .body { flex: 1; min-width: 0; }
+  .event-item .title { font-size: .89rem; font-weight: 600; word-break: break-all; }
+  .event-item .memo { font-size: .78rem; color: var(--muted); margin-top: 2px; white-space: pre-wrap; word-break: break-all; }
+  .x-btn {
+    border: none; background: none; color: var(--muted); cursor: pointer; font-size: .85rem;
+    padding: 3px 7px; border-radius: 8px; transition: background .2s, color .2s;
+  }
+  .x-btn:hover { background: rgba(255,107,129,0.12); color: var(--danger); }
+  .empty { font-size: .82rem; color: var(--muted); padding: 10px 4px; }
+
+  form.stack { display: grid; gap: 8px; margin-top: 10px; }
+  form.stack .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  form.stack .row > * { flex: 1; }
+  input, textarea, select {
+    width: 100%; border: 1px solid var(--border); border-radius: 11px;
+    background: var(--card-2); padding: 10px 12px;
+    font-size: .87rem; color: var(--text); font-family: inherit; outline: none;
+    transition: border-color .2s;
+  }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: .7; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  input[type="time"] { flex: 0 0 122px; width: 122px; }
+  input[type="date"] { min-width: 140px; }
+  textarea { resize: vertical; min-height: 52px; }
+  select { cursor: pointer; appearance: none; }
+
+  .primary-btn {
+    border: none; border-radius: 11px; padding: 11px 16px;
+    background: var(--grad); color: #fff; font-size: .88rem; font-weight: 700;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(91,140,255,0.3);
+    transition: transform .18s, box-shadow .18s;
+  }
+  .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(91,140,255,0.42); }
+  .ghost-btn {
+    border: 1px solid var(--border); border-radius: 11px; padding: 10px 16px;
+    background: var(--card-2); color: var(--text); font-size: .85rem; font-weight: 600;
+    font-family: inherit; cursor: pointer; transition: border-color .2s;
+  }
+  .ghost-btn:hover { border-color: var(--accent); }
+
+  /* ---------- upload ---------- */
+  .dropzone {
+    border: 1.5px dashed var(--border); border-radius: 14px;
+    padding: 20px 14px; text-align: center; font-size: .82rem; color: var(--muted);
+    background: var(--card-2); cursor: pointer; transition: border-color .2s, background .2s;
+  }
+  .dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone .big { font-size: 1.4rem; display: block; margin-bottom: 5px; }
+  .file-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 13px; padding: 9px 12px; margin-bottom: 8px;
+  }
+  .file-item .thumb {
+    width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
+    background: var(--accent-soft); display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; overflow: hidden;
+  }
+  .file-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .file-item .meta { flex: 1; min-width: 0; }
+  .file-item .name { font-size: .84rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-item .size { font-size: .72rem; color: var(--muted); }
+  .dl-btn {
+    border: 1px solid var(--border); background: var(--card); color: var(--accent);
+    border-radius: 9px; padding: 5px 10px; font-size: .76rem; font-weight: 600;
+    font-family: inherit; cursor: pointer; transition: border-color .2s;
+  }
+  .dl-btn:hover { border-color: var(--accent); }
+  .hint { font-size: .73rem; color: var(--muted); margin-top: 12px; line-height: 1.55; }
+
+  /* ---------- agenda (일정 모아보기) ---------- */
+  .agenda-group { margin-bottom: 18px; }
+  .agenda-date {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .86rem; font-weight: 700; margin-bottom: 8px;
+  }
+  .agenda-date .badge {
+    font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .agenda-date .badge.today { background: var(--grad); color: #fff; }
+  .agenda-date .badge.past { background: var(--bg-soft); color: var(--muted); }
+  .count-pill { font-size: .74rem; color: var(--muted); font-weight: 500; }
+  .agenda-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 880px) { .agenda-cols { grid-template-columns: 1fr; } }
+
+  /* ---------- travel ---------- */
+  .travel-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 940px) { .travel-grid { grid-template-columns: 1fr; } }
+  .mb { margin-bottom: 20px; }
+
+  .trip-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 13px; padding: 11px 13px; margin-bottom: 8px;
+  }
+  .trip-item .swatch { width: 10px; height: 38px; border-radius: 6px; flex-shrink: 0; }
+  .trip-item .meta { flex: 1; min-width: 0; }
+  .trip-item .dest { font-size: .9rem; font-weight: 700; }
+  .trip-item .range { font-size: .76rem; color: var(--muted); margin-top: 2px; }
+
+  .tcal .day { height: 52px; cursor: default; font-size: .78rem; }
+  .tcal .day:hover { transform: none; }
+  .tcal .day.trip { border-color: transparent; }
+  .tcal .day .tname {
+    font-size: .62rem; font-weight: 700; margin-top: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .price-card {
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px; margin-top: 10px;
+  }
+  .price-card h4 { font-size: 1rem; font-weight: 800; margin-bottom: 10px; }
+  .price-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: .85rem; }
+  .price-row:last-of-type { border-bottom: none; }
+  .price-row .k { color: var(--muted); }
+  .price-row .v { font-weight: 700; }
+  .price-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .price-links a {
+    text-decoration: none; font-size: .78rem; font-weight: 700;
+    padding: 8px 13px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+    border: 1px solid transparent; transition: border-color .2s;
+  }
+  .price-links a:hover { border-color: var(--accent); }
+  .price-note { font-size: .71rem; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+  .link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 9px; }
+  .site-link {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 13px; padding: 12px; text-decoration: none; color: var(--text);
+    transition: border-color .2s, transform .15s;
+  }
+  .site-link:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .site-link .ico { font-size: 1.15rem; }
+  .site-link .nm { font-size: .82rem; font-weight: 700; }
+  .site-link .ds { font-size: .68rem; color: var(--muted); margin-top: 1px; }
+
+  .prompt-out {
+    width: 100%; min-height: 230px; margin-top: 10px;
+    font-size: .82rem; line-height: 1.65; font-family: inherit;
+  }
+  .copy-row { display: flex; gap: 8px; margin-top: 10px; }
+  .copy-row .primary-btn { flex: 1; }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: var(--text); color: var(--bg); padding: 11px 22px;
+    border-radius: 999px; font-size: .84rem; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 50;
+    box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>SL_PROJECT</h1>
+      <small>일정과 여행 계획을 한 곳에서</small>
+    </div>
+    <div class="ctrl">
+      <button class="chip-btn" id="themeBtn"><span id="themeIcon">☀️</span><span id="themeLabel">라이트</span></button>
+      <button class="chip-btn" id="bgmBtn">
+        <span class="eq"><span></span><span></span><span></span></span>
+        <span id="bgmLabel">BGM 켜기</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="calendar">📅 캘린더</button>
+    <button class="tab-btn" data-tab="agenda">🗂️ 일정 모아보기</button>
+    <button class="tab-btn" data-tab="travel">✈️ 여행 플래너</button>
+  </nav>
+
+  <!-- ===================== 캘린더 탭 ===================== -->
+  <section class="tab-page active" id="page-calendar">
+    <div class="layout">
+      <div class="card">
+        <div class="cal-head">
+          <button class="nav-btn" id="prevBtn">‹</button>
+          <h2 id="calTitle"></h2>
+          <button class="nav-btn" id="nextBtn">›</button>
+        </div>
+        <div class="weekdays">
+          <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+        </div>
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div class="card panel" id="panel">
+        <h3 id="panelDate">날짜를 선택해 주세요</h3>
+        <p class="sub" id="panelSub">캘린더에서 날짜를 누르면 일정과 작업물을 관리할 수 있어요.</p>
+
+        <div id="panelBody" style="display:none;">
+          <div class="section-label">일정</div>
+          <div id="eventList"></div>
+          <form class="stack" id="eventForm">
+            <div class="row">
+              <input type="time" id="evTime">
+              <input type="text" id="evTitle" placeholder="일정 제목" required maxlength="60">
+            </div>
+            <textarea id="evMemo" placeholder="메모 (선택)" maxlength="300"></textarea>
+            <button type="submit" class="primary-btn">일정 추가</button>
+          </form>
+
+          <div class="section-label">작업물</div>
+          <div id="fileList"></div>
+          <div class="dropzone" id="dropzone">
+            <span class="big">📎</span>
+            파일을 끌어다 놓거나 클릭해서 업로드
+            <input type="file" id="fileInput" multiple hidden>
+          </div>
+          <p class="hint">일정과 파일은 이 브라우저 안에만 저장돼요(서버 업로드 없음). 같은 브라우저로 다시 열면 그대로 남아 있어요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 일정 모아보기 탭 ===================== -->
+  <section class="tab-page" id="page-agenda">
+    <div class="agenda-cols">
+      <div class="card">
+        <div class="section-label">빠른 일정 추가</div>
+        <form class="stack" id="quickForm">
+          <div class="row">
+            <input type="date" id="qDate" required>
+            <input type="time" id="qTime">
+          </div>
+          <input type="text" id="qTitle" placeholder="일정 제목" required maxlength="60">
+          <textarea id="qMemo" placeholder="메모 (선택)" maxlength="300"></textarea>
+          <button type="submit" class="primary-btn">일정 추가</button>
+        </form>
+
+        <div class="section-label" style="margin-top:24px;">다가오는 일정 <span class="count-pill" id="upcomingCount"></span></div>
+        <div id="upcomingList"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">지난 일정 <span class="count-pill" id="pastCount"></span></div>
+        <div id="pastList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 여행 플래너 탭 ===================== -->
+  <section class="tab-page" id="page-travel">
+    <div class="travel-grid">
+      <div>
+        <div class="card mb">
+          <div class="section-label">여행 일정 등록</div>
+          <form class="stack" id="tripForm">
+            <div class="row">
+              <select id="tripDest"></select>
+              <input type="text" id="tripDestCustom" placeholder="직접 입력 (예: 런던)" style="display:none;" maxlength="30">
+            </div>
+            <div class="row">
+              <input type="date" id="tripStart" required>
+              <input type="date" id="tripEnd" required>
+            </div>
+            <input type="text" id="tripMemo" placeholder="메모 (선택)" maxlength="100">
+            <button type="submit" class="primary-btn">여행 추가</button>
+          </form>
+          <div class="section-label" style="margin-top:22px;">내 여행 목록</div>
+          <div id="tripList"></div>
+        </div>
+
+        <div class="card mb">
+          <div class="cal-head">
+            <button class="nav-btn" id="tPrevBtn">‹</button>
+            <h2 id="tCalTitle"></h2>
+            <button class="nav-btn" id="tNextBtn">›</button>
+          </div>
+          <div class="weekdays">
+            <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+          </div>
+          <div class="grid tcal" id="tGrid"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">여행 바로가기</div>
+          <div class="link-grid" id="linkGrid"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card mb">
+          <div class="section-label">목적지 가격 참고</div>
+          <select id="priceDest"></select>
+          <div class="price-card" id="priceCard" style="display:none;">
+            <h4 id="pcName"></h4>
+            <div class="price-row"><span class="k">✈️ 왕복 항공권 (1인)</span><span class="v" id="pcFlight"></span></div>
+            <div class="price-row"><span class="k">🏨 숙박 (1박)</span><span class="v" id="pcHotel"></span></div>
+            <div class="price-row"><span class="k">🍜 하루 식비·교통 (1인)</span><span class="v" id="pcDaily"></span></div>
+            <div class="price-links" id="pcLinks"></div>
+            <p class="price-note">※ 대략적인 참고 가격이에요. 시즌·예약 시점에 따라 크게 달라질 수 있으니, 위 버튼으로 실시간 가격을 꼭 확인하세요.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">AI 여행 질문지 만들기</div>
+          <p class="hint" style="margin:0 0 12px;">아래를 채우면 AI에게 바로 복붙해서 물어볼 수 있는 질문지가 완성돼요.</p>
+          <form class="stack" id="promptForm">
+            <input type="text" id="pDest" placeholder="목적지 (예: 도쿄)" required maxlength="30">
+            <div class="row">
+              <input type="date" id="pStart">
+              <input type="date" id="pEnd">
+            </div>
+            <div class="row">
+              <input type="text" id="pPeople" placeholder="인원 (예: 2명)" maxlength="20">
+              <input type="text" id="pBudget" placeholder="1인 예산 (예: 100만원)" maxlength="20">
+            </div>
+            <input type="text" id="pStyle" placeholder="여행 스타일 (예: 맛집 위주, 여유로운 일정)" maxlength="60">
+            <button type="submit" class="primary-btn">질문지 생성</button>
+          </form>
+          <textarea class="prompt-out" id="promptOut" readonly placeholder="여기에 질문지가 생성돼요."></textarea>
+          <div class="copy-row">
+            <button class="primary-btn" id="copyBtn">📋 복사하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 테마 ============ */
+const THEME_KEY = 'slProjectTheme';
+const themeBtn = document.getElementById('themeBtn');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  document.getElementById('themeIcon').textContent = t === 'dark' ? '☀️' : '🌙';
+  document.getElementById('themeLabel').textContent = t === 'dark' ? '라이트' : '다크';
+}
+applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+themeBtn.addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+});
+
+/* ============ 오디오 (클릭 효과음 + 차분한 BGM) ============ */
+let actx = null;
+function getCtx() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+/* 세련된 클릭음: 부드러운 글래스 톤 */
+function clickSound() {
+  try {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(920, now);
+    osc.frequency.exponentialRampToValueAtTime(620, now + 0.07);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.11, now + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 320;
+    osc.connect(hp); hp.connect(g); g.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.14);
+  } catch (e) {}
+}
+document.addEventListener('pointerdown', e => {
+  if (e.target.closest('button, a, .day, select, .tab-btn, .dropzone')) clickSound();
+}, { passive: true });
+
+/* 차분한 앰비언트 BGM (Web Audio 생성) */
+const bgm = (() => {
+  let master, nodes = [], timers = [], playing = false;
+
+  function start() {
+    const ctx = getCtx();
+    master = ctx.createGain();
+    master.gain.value = 0;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 2400; lp.Q.value = 0.4;
+    master.connect(lp); lp.connect(ctx.destination);
+
+    // 따뜻한 패드 (C - G - E)
+    [[130.81, .05], [196.0, .04], [261.63, .032], [329.63, .024]].forEach(([f, v], i) => {
+      const o = ctx.createOscillator();
+      o.type = i % 2 ? 'triangle' : 'sine';
+      o.frequency.value = f;
+      o.detune.value = [-4, 3, -2, 5][i];
+      const g = ctx.createGain();
+      g.gain.value = v;
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.05 + i * 0.018;
+      const lg = ctx.createGain();
+      lg.gain.value = v * 0.45;
+      lfo.connect(lg); lg.connect(g.gain);
+      o.connect(g); g.connect(master);
+      o.start(); lfo.start();
+      nodes.push(o, lfo);
+    });
+
+    // 간헐적인 부드러운 벨 톤
+    const scale = [523.25, 587.33, 659.25, 783.99, 880.0];
+    function bell() {
+      if (!playing) return;
+      const now = ctx.currentTime;
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = scale[Math.floor(Math.random() * scale.length)];
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.045, now + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+      o.connect(g); g.connect(master);
+      o.start(now); o.stop(now + 3.4);
+      timers.push(setTimeout(bell, 4200 + Math.random() * 5600));
+    }
+    timers.push(setTimeout(bell, 1800));
+
+    master.gain.setTargetAtTime(0.85, ctx.currentTime, 1.4);
+  }
+
+  function stop() {
+    const ctx = getCtx();
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setTargetAtTime(0, ctx.currentTime, 0.7);
+    timers.forEach(clearTimeout); timers = [];
+    const old = nodes; nodes = [];
+    setTimeout(() => old.forEach(n => { try { n.stop(); } catch (e) {} }), 1500);
+  }
+
+  return {
+    toggle() {
+      playing = !playing;
+      playing ? start() : stop();
+      return playing;
+    }
+  };
+})();
+const bgmBtn = document.getElementById('bgmBtn');
+bgmBtn.addEventListener('click', () => {
+  const on = bgm.toggle();
+  bgmBtn.classList.toggle('playing', on);
+  document.getElementById('bgmLabel').textContent = on ? 'BGM 끄기' : 'BGM 켜기';
+});
+
+/* ============ 탭 ============ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'agenda') renderAgenda();
+    if (btn.dataset.tab === 'travel') { renderTrips(); renderTravelCal(); }
+  });
+});
+
+/* ============ 데이터 저장 ============ */
+const EV_KEY = 'dreamCalendarEvents';
+function loadEvents() { try { return JSON.parse(localStorage.getItem(EV_KEY)) || {}; } catch (e) { return {}; } }
+function saveEvents(d) { localStorage.setItem(EV_KEY, JSON.stringify(d)); }
+
+let db;
+const dbReady = new Promise((resolve, reject) => {
+  const req = indexedDB.open('dreamCalendarFiles', 1);
+  req.onupgradeneeded = e => {
+    const store = e.target.result.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+    store.createIndex('byDate', 'dateKey');
+  };
+  req.onsuccess = e => { db = e.target.result; resolve(); };
+  req.onerror = () => reject(req.error);
+});
+function filesForDate(dateKey) {
+  return dbReady.then(() => new Promise(res => {
+    const out = [];
+    const idx = db.transaction('files').objectStore('files').index('byDate');
+    idx.openCursor(IDBKeyRange.only(dateKey)).onsuccess = e => {
+      const c = e.target.result;
+      if (c) { out.push(c.value); c.continue(); } else res(out);
+    };
+  }));
+}
+function addFileRec(rec) {
+  return dbReady.then(() => new Promise(res => {
+    db.transaction('files', 'readwrite').objectStore('files').add(rec).onsuccess = res;
+  }));
+}
+function deleteFileRec(id) {
+  return dbReady.then(() => new Promise(res => {
+    db.transaction('files', 'readwrite').objectStore('files').delete(id).onsuccess = res;
+  }));
+}
+function datesWithFiles() {
+  return dbReady.then(() => new Promise(res => {
+    const set = new Set();
+    db.transaction('files').objectStore('files').openCursor().onsuccess = e => {
+      const c = e.target.result;
+      if (c) { set.add(c.value.dateKey); c.continue(); } else res(set);
+    };
+  }));
+}
+
+/* ============ 메인 캘린더 ============ */
+const grid = document.getElementById('grid');
+const calTitle = document.getElementById('calTitle');
+let view = new Date();
+let selectedKey = null;
+let fileDateCache = new Set();
+const fmtKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const DOWS = ['일', '월', '화', '수', '목', '금', '토'];
+
+async function renderCalendar() {
+  fileDateCache = await datesWithFiles();
+  const events = loadEvents();
+  const y = view.getFullYear(), m = view.getMonth();
+  calTitle.textContent = y + '년 ' + (m + 1) + '월';
+  grid.innerHTML = '';
+  const first = new Date(y, m, 1).getDay();
+  const days = new Date(y, m + 1, 0).getDate();
+  const todayKey = fmtKey(new Date());
+
+  for (let i = 0; i < first; i++) {
+    const b = document.createElement('div');
+    b.className = 'day blank';
+    grid.appendChild(b);
+  }
+  for (let d = 1; d <= days; d++) {
+    const date = new Date(y, m, d);
+    const key = fmtKey(date);
+    const cell = document.createElement('div');
+    cell.className = 'day';
+    const dow = date.getDay();
+    if (dow === 0) cell.classList.add('sun');
+    if (dow === 6) cell.classList.add('sat');
+    if (key === todayKey) cell.classList.add('today');
+    if (key === selectedKey) cell.classList.add('selected');
+
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = d;
+    cell.appendChild(num);
+
+    const marks = document.createElement('div');
+    marks.className = 'marks';
+    const evCount = (events[key] || []).length;
+    for (let i = 0; i < Math.min(evCount, 3); i++) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      marks.appendChild(dot);
+    }
+    if (fileDateCache.has(key)) {
+      const clip = document.createElement('span');
+      clip.className = 'clip';
+      clip.textContent = '📎';
+      marks.appendChild(clip);
+    }
+    cell.appendChild(marks);
+    cell.addEventListener('click', () => selectDate(key));
+    grid.appendChild(cell);
+  }
+}
+document.getElementById('prevBtn').onclick = () => { view.setMonth(view.getMonth() - 1); renderCalendar(); };
+document.getElementById('nextBtn').onclick = () => { view.setMonth(view.getMonth() + 1); renderCalendar(); };
+
+/* ============ 날짜 패널 ============ */
+const panelDate = document.getElementById('panelDate');
+const panelSub = document.getElementById('panelSub');
+const panelBody = document.getElementById('panelBody');
+const eventList = document.getElementById('eventList');
+const fileList = document.getElementById('fileList');
+
+function selectDate(key) {
+  selectedKey = key;
+  const [y, m, d] = key.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  panelDate.textContent = y + '년 ' + m + '월 ' + d + '일 (' + DOWS[date.getDay()] + ')';
+  panelSub.textContent = '이 날의 일정과 작업물이에요.';
+  panelBody.style.display = 'block';
+  renderCalendar();
+  renderEvents();
+  renderFiles();
+}
+
+function removeEvent(dateKey, id) {
+  const all = loadEvents();
+  all[dateKey] = (all[dateKey] || []).filter(e => e.id !== id);
+  if (!all[dateKey].length) delete all[dateKey];
+  saveEvents(all);
+}
+
+function renderEvents() {
+  const events = loadEvents();
+  const list = (events[selectedKey] || []).slice().sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+  eventList.innerHTML = '';
+  if (!list.length) {
+    eventList.innerHTML = '<p class="empty">아직 일정이 없어요. 아래에서 추가해 보세요.</p>';
+    return;
+  }
+  for (const ev of list) {
+    eventList.appendChild(eventItemEl(ev, selectedKey, () => {
+      renderEvents(); renderCalendar(); toast('일정을 지웠어요');
+    }));
+  }
+}
+
+function eventItemEl(ev, dateKey, onDelete) {
+  const item = document.createElement('div');
+  item.className = 'event-item';
+  const time = document.createElement('span');
+  time.className = 'time';
+  time.textContent = ev.time || '종일';
+  const body = document.createElement('div');
+  body.className = 'body';
+  const title = document.createElement('div');
+  title.className = 'title';
+  title.textContent = ev.title;
+  body.appendChild(title);
+  if (ev.memo) {
+    const memo = document.createElement('div');
+    memo.className = 'memo';
+    memo.textContent = ev.memo;
+    body.appendChild(memo);
+  }
+  const x = document.createElement('button');
+  x.className = 'x-btn';
+  x.textContent = '✕';
+  x.title = '삭제';
+  x.onclick = () => { removeEvent(dateKey, ev.id); onDelete(); };
+  item.append(time, body, x);
+  return item;
+}
+
+function addEvent(dateKey, time, title, memo) {
+  const all = loadEvents();
+  (all[dateKey] = all[dateKey] || []).push({
+    id: Date.now() + '' + Math.floor(Math.random() * 1e4),
+    time, title, memo
+  });
+  saveEvents(all);
+}
+
+document.getElementById('eventForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (!selectedKey) return;
+  const title = document.getElementById('evTitle').value.trim();
+  if (!title) return;
+  addEvent(selectedKey, document.getElementById('evTime').value, title, document.getElementById('evMemo').value.trim());
+  e.target.reset();
+  renderEvents();
+  renderCalendar();
+  toast('일정이 추가됐어요');
+});
+
+/* ============ 파일 업로드 ============ */
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const MAX_SIZE = 25 * 1024 * 1024;
+
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => { handleFiles(fileInput.files); fileInput.value = ''; });
+['dragover', 'dragenter'].forEach(t => dropzone.addEventListener(t, e => { e.preventDefault(); dropzone.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => dropzone.addEventListener(t, e => { e.preventDefault(); dropzone.classList.remove('over'); }));
+dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+async function handleFiles(files) {
+  if (!selectedKey) return;
+  for (const f of files) {
+    if (f.size > MAX_SIZE) { toast('"' + f.name + '" 은(는) 25MB를 넘어 건너뛰었어요'); continue; }
+    await addFileRec({ dateKey: selectedKey, name: f.name, type: f.type, size: f.size, blob: f, added: Date.now() });
+  }
+  renderFiles();
+  renderCalendar();
+  if (files.length) toast('작업물이 올라갔어요');
+}
+
+function fmtSize(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1048576).toFixed(1) + ' MB';
+}
+function iconFor(type, name) {
+  if (type.startsWith('image/')) return '🖼️';
+  if (type.startsWith('audio/')) return '🎧';
+  if (type.startsWith('video/')) return '🎬';
+  if (/\.(pdf)$/i.test(name)) return '📕';
+  if (/\.(zip|rar|7z)$/i.test(name)) return '🗜️';
+  if (/\.(doc|docx|hwp|txt|md)$/i.test(name)) return '📄';
+  if (/\.(xls|xlsx|csv)$/i.test(name)) return '📊';
+  if (/\.(ppt|pptx)$/i.test(name)) return '📑';
+  return '📦';
+}
+
+async function renderFiles() {
+  const files = await filesForDate(selectedKey);
+  fileList.innerHTML = '';
+  if (!files.length) {
+    fileList.innerHTML = '<p class="empty">아직 올린 작업물이 없어요.</p>';
+    return;
+  }
+  for (const f of files.sort((a, b) => b.added - a.added)) {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    if (f.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f.blob);
+      thumb.appendChild(img);
+    } else {
+      thumb.textContent = iconFor(f.type, f.name);
+    }
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.innerHTML = '<div class="name"></div><div class="size">' + fmtSize(f.size) + '</div>';
+    meta.querySelector('.name').textContent = f.name;
+    const dl = document.createElement('button');
+    dl.className = 'dl-btn';
+    dl.textContent = '받기';
+    dl.onclick = () => {
+      const url = URL.createObjectURL(f.blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = f.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    };
+    const x = document.createElement('button');
+    x.className = 'x-btn';
+    x.textContent = '✕';
+    x.title = '삭제';
+    x.onclick = async () => { await deleteFileRec(f.id); renderFiles(); renderCalendar(); toast('작업물을 지웠어요'); };
+    item.append(thumb, meta, dl, x);
+    fileList.appendChild(item);
+  }
+}
+
+/* ============ 일정 모아보기 탭 ============ */
+function dateLabel(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return y + '년 ' + m + '월 ' + d + '일 (' + DOWS[date.getDay()] + ')';
+}
+function dBadge(key, todayKey) {
+  if (key === todayKey) return ['오늘', 'today'];
+  const diff = Math.round((new Date(key) - new Date(todayKey)) / 86400000);
+  if (diff > 0) return ['D-' + diff, ''];
+  return ['지남', 'past'];
+}
+
+function renderAgenda() {
+  const events = loadEvents();
+  const todayKey = fmtKey(new Date());
+  const keys = Object.keys(events).sort();
+  const upcoming = keys.filter(k => k >= todayKey);
+  const past = keys.filter(k => k < todayKey).reverse();
+
+  const upList = document.getElementById('upcomingList');
+  const paList = document.getElementById('pastList');
+  upList.innerHTML = ''; paList.innerHTML = '';
+
+  let upCount = 0, paCount = 0;
+  function group(container, keyArr, isUp) {
+    for (const key of keyArr) {
+      const evs = (events[key] || []).slice().sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+      if (!evs.length) continue;
+      if (isUp) upCount += evs.length; else paCount += evs.length;
+      const g = document.createElement('div');
+      g.className = 'agenda-group';
+      const head = document.createElement('div');
+      head.className = 'agenda-date';
+      const [txt, cls] = dBadge(key, todayKey);
+      head.innerHTML = '<span class="badge ' + cls + '"></span><span></span>';
+      head.querySelector('.badge').textContent = txt;
+      head.querySelector('span:last-child').textContent = dateLabel(key);
+      g.appendChild(head);
+      for (const ev of evs) {
+        g.appendChild(eventItemEl(ev, key, () => {
+          renderAgenda(); renderCalendar(); if (selectedKey) renderEvents(); toast('일정을 지웠어요');
+        }));
+      }
+      container.appendChild(g);
+    }
+  }
+  group(upList, upcoming, true);
+  group(paList, past, false);
+  if (!upCount) upList.innerHTML = '<p class="empty">다가오는 일정이 없어요. 위에서 추가해 보세요.</p>';
+  if (!paCount) paList.innerHTML = '<p class="empty">지난 일정이 없어요.</p>';
+  document.getElementById('upcomingCount').textContent = upCount ? upCount + '개' : '';
+  document.getElementById('pastCount').textContent = paCount ? paCount + '개' : '';
+}
+
+document.getElementById('quickForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const dateKey = document.getElementById('qDate').value;
+  const title = document.getElementById('qTitle').value.trim();
+  if (!dateKey || !title) return;
+  addEvent(dateKey, document.getElementById('qTime').value, title, document.getElementById('qMemo').value.trim());
+  e.target.reset();
+  renderAgenda();
+  renderCalendar();
+  if (selectedKey === dateKey) renderEvents();
+  toast('일정이 추가됐어요');
+});
+
+/* ============ 여행 플래너 ============ */
+const DESTS = [
+  { name: '도쿄',     code: 'nrt',  flight: '25~45만원',   hotel: '12~20만원',  daily: '8~12만원' },
+  { name: '오사카',   code: 'osa',  flight: '20~40만원',   hotel: '10~18만원',  daily: '7~11만원' },
+  { name: '후쿠오카', code: 'fuk',  flight: '15~30만원',   hotel: '9~15만원',   daily: '7~10만원' },
+  { name: '제주',     code: 'cju',  flight: '5~15만원',    hotel: '8~15만원',   daily: '6~10만원' },
+  { name: '타이베이', code: 'tpe',  flight: '25~45만원',   hotel: '8~14만원',   daily: '5~8만원' },
+  { name: '방콕',     code: 'bkk',  flight: '35~60만원',   hotel: '6~15만원',   daily: '4~8만원' },
+  { name: '다낭',     code: 'dad',  flight: '30~55만원',   hotel: '5~12만원',   daily: '3~6만원' },
+  { name: '세부',     code: 'ceb',  flight: '30~55만원',   hotel: '7~15만원',   daily: '4~7만원' },
+  { name: '싱가포르', code: 'sin',  flight: '45~75만원',   hotel: '15~30만원',  daily: '8~13만원' },
+  { name: '파리',     code: 'par',  flight: '90~160만원',  hotel: '18~35만원',  daily: '12~18만원' },
+  { name: '뉴욕',     code: 'nyca', flight: '120~200만원', hotel: '25~45만원',  daily: '15~25만원' },
+  { name: '하와이',   code: 'hnl',  flight: '90~160만원',  hotel: '25~50만원',  daily: '12~20만원' }
+];
+const SITES = [
+  { ico: '🔍', nm: '스카이스캐너', ds: '항공권 비교', url: 'https://www.skyscanner.co.kr/' },
+  { ico: '✈️', nm: '구글 플라이트', ds: '항공권 검색', url: 'https://www.google.com/travel/flights?hl=ko' },
+  { ico: '🏨', nm: '아고다', ds: '숙소 예약', url: 'https://www.agoda.com/ko-kr/' },
+  { ico: '🛏️', nm: '부킹닷컴', ds: '숙소 예약', url: 'https://www.booking.com/index.ko.html' },
+  { ico: '🏠', nm: '에어비앤비', ds: '숙소·체험', url: 'https://www.airbnb.co.kr/' },
+  { ico: '🧳', nm: '트리플', ds: '일정 짜기', url: 'https://triple.guide/' },
+  { ico: '🎟️', nm: '클룩', ds: '액티비티·티켓', url: 'https://www.klook.com/ko/' },
+  { ico: '🗺️', nm: '마이리얼트립', ds: '투어·입장권', url: 'https://www.myrealtrip.com/' },
+  { ico: '⭐', nm: '트립어드바이저', ds: '리뷰·맛집', url: 'https://www.tripadvisor.co.kr/' },
+  { ico: '💱', nm: '네이버 환율', ds: '환율 확인', url: 'https://search.naver.com/search.naver?query=환율' }
+];
+const TRIP_KEY = 'slTravelTrips';
+const TRIP_COLORS = ['#5b8cff', '#3fd0a4', '#f2a35f', '#e07be0', '#8f7bff', '#ff6b81'];
+function loadTrips() { try { return JSON.parse(localStorage.getItem(TRIP_KEY)) || []; } catch (e) { return []; } }
+function saveTrips(t) { localStorage.setItem(TRIP_KEY, JSON.stringify(t)); }
+
+/* 목적지 셀렉트 채우기 */
+const tripDest = document.getElementById('tripDest');
+const priceDest = document.getElementById('priceDest');
+DESTS.forEach(d => {
+  tripDest.appendChild(new Option(d.name, d.name));
+  priceDest.appendChild(new Option(d.name + ' — 가격 참고 보기', d.name));
+});
+tripDest.appendChild(new Option('직접 입력…', '__custom'));
+priceDest.insertBefore(new Option('목적지를 선택하세요', ''), priceDest.firstChild);
+priceDest.value = '';
+tripDest.addEventListener('change', () => {
+  document.getElementById('tripDestCustom').style.display = tripDest.value === '__custom' ? 'block' : 'none';
+});
+
+/* 가격 카드 */
+function searchLinks(d) {
+  const links = [
+    ['✈️ 스카이스캐너 항공권', 'https://www.skyscanner.co.kr/transport/flights/icn/' + d.code + '/'],
+    ['✈️ 구글 플라이트', 'https://www.google.com/travel/flights?hl=ko&q=' + encodeURIComponent('인천에서 ' + d.name + ' 항공권')],
+    ['🏨 아고다 숙소', 'https://www.agoda.com/ko-kr/search?textToSearch=' + encodeURIComponent(d.name)],
+    ['🛏️ 부킹닷컴 숙소', 'https://www.booking.com/searchresults.ko.html?ss=' + encodeURIComponent(d.name)]
+  ];
+  return links;
+}
+priceDest.addEventListener('change', () => {
+  const d = DESTS.find(x => x.name === priceDest.value);
+  const card = document.getElementById('priceCard');
+  if (!d) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('pcName').textContent = '📍 ' + d.name;
+  document.getElementById('pcFlight').textContent = d.flight;
+  document.getElementById('pcHotel').textContent = d.hotel;
+  document.getElementById('pcDaily').textContent = d.daily;
+  const linkBox = document.getElementById('pcLinks');
+  linkBox.innerHTML = '';
+  searchLinks(d).forEach(([label, url]) => {
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.textContent = label;
+    linkBox.appendChild(a);
+  });
+});
+
+/* 바로가기 그리드 */
+const linkGrid = document.getElementById('linkGrid');
+SITES.forEach(s => {
+  const a = document.createElement('a');
+  a.className = 'site-link';
+  a.href = s.url; a.target = '_blank'; a.rel = 'noopener';
+  a.innerHTML = '<span class="ico"></span><span><div class="nm"></div><div class="ds"></div></span>';
+  a.querySelector('.ico').textContent = s.ico;
+  a.querySelector('.nm').textContent = s.nm;
+  a.querySelector('.ds').textContent = s.ds;
+  linkGrid.appendChild(a);
+});
+
+/* 여행 등록 / 목록 */
+document.getElementById('tripForm').addEventListener('submit', e => {
+  e.preventDefault();
+  let dest = tripDest.value;
+  if (dest === '__custom') dest = document.getElementById('tripDestCustom').value.trim();
+  const start = document.getElementById('tripStart').value;
+  const end = document.getElementById('tripEnd').value;
+  if (!dest || !start || !end) return;
+  if (end < start) { toast('종료일이 시작일보다 빨라요'); return; }
+  const trips = loadTrips();
+  trips.push({
+    id: Date.now() + '' + Math.floor(Math.random() * 1e4),
+    dest, start, end,
+    memo: document.getElementById('tripMemo').value.trim(),
+    color: TRIP_COLORS[trips.length % TRIP_COLORS.length]
+  });
+  saveTrips(trips);
+  e.target.reset();
+  document.getElementById('tripDestCustom').style.display = 'none';
+  renderTrips();
+  renderTravelCal();
+  toast('여행이 추가됐어요');
+});
+
+function nightsLabel(start, end) {
+  const n = Math.round((new Date(end) - new Date(start)) / 86400000);
+  return n === 0 ? '당일치기' : n + '박 ' + (n + 1) + '일';
+}
+
+function renderTrips() {
+  const trips = loadTrips().slice().sort((a, b) => a.start < b.start ? -1 : 1);
+  const box = document.getElementById('tripList');
+  box.innerHTML = '';
+  if (!trips.length) {
+    box.innerHTML = '<p class="empty">등록된 여행이 없어요. 위에서 추가해 보세요.</p>';
+    return;
+  }
+  for (const t of trips) {
+    const item = document.createElement('div');
+    item.className = 'trip-item';
+    const sw = document.createElement('div');
+    sw.className = 'swatch';
+    sw.style.background = t.color;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const dest = document.createElement('div');
+    dest.className = 'dest';
+    dest.textContent = '✈️ ' + t.dest;
+    const range = document.createElement('div');
+    range.className = 'range';
+    range.textContent = t.start + ' ~ ' + t.end + ' · ' + nightsLabel(t.start, t.end) + (t.memo ? ' · ' + t.memo : '');
+    meta.append(dest, range);
+    const x = document.createElement('button');
+    x.className = 'x-btn';
+    x.textContent = '✕';
+    x.title = '삭제';
+    x.onclick = () => {
+      saveTrips(loadTrips().filter(z => z.id !== t.id));
+      renderTrips(); renderTravelCal(); toast('여행을 지웠어요');
+    };
+    item.append(sw, meta, x);
+    box.appendChild(item);
+  }
+}
+
+/* 여행 캘린더 */
+let tView = new Date();
+const tGrid = document.getElementById('tGrid');
+const tCalTitle = document.getElementById('tCalTitle');
+
+function renderTravelCal() {
+  const trips = loadTrips();
+  const y = tView.getFullYear(), m = tView.getMonth();
+  tCalTitle.textContent = y + '년 ' + (m + 1) + '월';
+  tGrid.innerHTML = '';
+  const first = new Date(y, m, 1).getDay();
+  const days = new Date(y, m + 1, 0).getDate();
+  const todayKey = fmtKey(new Date());
+
+  for (let i = 0; i < first; i++) {
+    const b = document.createElement('div');
+    b.className = 'day blank';
+    tGrid.appendChild(b);
+  }
+  for (let d = 1; d <= days; d++) {
+    const date = new Date(y, m, d);
+    const key = fmtKey(date);
+    const cell = document.createElement('div');
+    cell.className = 'day';
+    const dow = date.getDay();
+    if (dow === 0) cell.classList.add('sun');
+    if (dow === 6) cell.classList.add('sat');
+    if (key === todayKey) cell.classList.add('today');
+
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = d;
+    cell.appendChild(num);
+
+    const trip = trips.find(t => key >= t.start && key <= t.end);
+    if (trip) {
+      cell.classList.add('trip');
+      cell.style.background = trip.color + '26';
+      cell.style.borderColor = trip.color + '66';
+      if (key === trip.start || d === 1) {
+        const nm = document.createElement('div');
+        nm.className = 'tname';
+        nm.style.color = trip.color;
+        nm.textContent = trip.dest;
+        cell.appendChild(nm);
+      }
+      cell.title = trip.dest + ' (' + trip.start + ' ~ ' + trip.end + ')';
+    }
+    tGrid.appendChild(cell);
+  }
+}
+document.getElementById('tPrevBtn').onclick = () => { tView.setMonth(tView.getMonth() - 1); renderTravelCal(); };
+document.getElementById('tNextBtn').onclick = () => { tView.setMonth(tView.getMonth() + 1); renderTravelCal(); };
+
+/* ============ AI 질문지 생성 ============ */
+document.getElementById('promptForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const dest = document.getElementById('pDest').value.trim();
+  const start = document.getElementById('pStart').value;
+  const end = document.getElementById('pEnd').value;
+  const people = document.getElementById('pPeople').value.trim() || '미정';
+  const budget = document.getElementById('pBudget').value.trim() || '미정';
+  const style = document.getElementById('pStyle').value.trim() || '특별한 선호 없음';
+
+  let period = '미정';
+  if (start && end) period = start + ' ~ ' + end + ' (' + nightsLabel(start, end) + ')';
+  else if (start) period = start + ' 출발';
+
+  const txt =
+'[여행 계획 요청]\n' +
+'· 목적지: ' + dest + '\n' +
+'· 여행 기간: ' + period + '\n' +
+'· 인원: ' + people + '\n' +
+'· 1인 예산: ' + budget + '\n' +
+'· 여행 스타일: ' + style + '\n\n' +
+'위 조건에 맞춰 아래 내용을 포함한 여행 계획을 짜줘.\n\n' +
+'1. 날짜별 상세 일정 (오전 / 오후 / 저녁으로 나눠서)\n' +
+'2. 이동 동선을 고려한 효율적인 코스 추천\n' +
+'3. 꼭 가봐야 할 명소와 현지 맛집 (이유도 함께)\n' +
+'4. 항공·숙소·식비·교통 포함 예상 경비 내역\n' +
+'5. 미리 예약해야 할 것들과 알아두면 좋은 꿀팁\n' +
+'6. 우천 시 대체 일정';
+
+  document.getElementById('promptOut').value = txt;
+  toast('질문지가 생성됐어요');
+});
+
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  const out = document.getElementById('promptOut');
+  if (!out.value) { toast('먼저 질문지를 생성해 주세요'); return; }
+  try {
+    await navigator.clipboard.writeText(out.value);
+    toast('복사 완료! AI에게 붙여넣어 보세요');
+  } catch (e) {
+    out.select();
+    document.execCommand('copy');
+    toast('복사 완료!');
+  }
+});
+
+/* ============ 토스트 ============ */
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ============ 시작 ============ */
+renderCalendar();
+selectDate(fmtKey(new Date()));
+renderTrips();
+renderTravelCal();
+</script>
+</body>
+</html>
